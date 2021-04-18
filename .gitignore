@@ -9,3 +9,9 @@ compile_commands.json
 
 # clangd缓存目录
 .cache
+
+# 生成的头文件依赖
+.depend
+
+bin
+obj
