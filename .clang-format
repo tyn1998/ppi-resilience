@@ -1,0 +1,4 @@
+# 使用谷歌风格
+BasedOnStyle: Google
+# 缩进宽度改为为4空格（不懂为什么默认是2）
+IndentWidth: 4
