@@ -21,7 +21,7 @@ double ComputeResilience(std::string fragmentation_path) {
         int num_nodes_remained;
         char components_detail[999];
 
-        // 将当期line分为三部分
+        // 将当前line分为三部分
         sscanf(line.c_str(), "%lf %d, %[^\n]", &percentage_nodes_deleted,
                &num_nodes_remained, components_detail);
 
