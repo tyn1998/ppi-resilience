@@ -30,6 +30,15 @@ vector<string> GetJobList() {
     return job_list;
 }
 
+void WriteEntropies(vector<double> entropies, string outpath) {
+    ofstream out(outpath.c_str());
+    // 补上0%的点
+    out << 0 << endl;
+    for(vector<double>::iterator it=entropies.begin(); it!=entropies.end(); it++) {
+        out << *it << endl;
+    }
+}
+
 AllStrategiesResilience GetAllStrategiesResilience(string species_id) {
     AllStrategiesResilience asr;
 
@@ -39,19 +48,31 @@ AllStrategiesResilience GetAllStrategiesResilience(string species_id) {
     string closeness_path = species_fragmentation_dir + "/closeness";
     string degreecentrality_path = species_fragmentation_dir + "/degreecentrality";
 
+    vector<double> modified_shannon_entropies;
     double resilience = 0.0;
 
     for (int i=0; i<RANDOM_COUNT; i++) {
         string random_i_path = random_dir + "/random_" + to_string(i);
-        resilience = ComputeResilience(random_i_path);
+        modified_shannon_entropies = ComputeModifiedShannonEntropies(random_i_path);
+        WriteEntropies(modified_shannon_entropies, OUTPUT_DIR+"/"+species_id+"/entropies/random/random_"+to_string(i));
+        resilience = ComputeResilience(modified_shannon_entropies);
         asr.randoms.push_back(resilience);
     }
-    
-    resilience = ComputeResilience(betweenness_path);
+
+    modified_shannon_entropies =
+        ComputeModifiedShannonEntropies(betweenness_path);
+    WriteEntropies(modified_shannon_entropies, OUTPUT_DIR+"/"+species_id+"/entropies/betweenness");
+    resilience = ComputeResilience(modified_shannon_entropies);
     asr.betweenness = resilience;
-    resilience = ComputeResilience(closeness_path);
+    modified_shannon_entropies =
+        ComputeModifiedShannonEntropies(closeness_path);
+    WriteEntropies(modified_shannon_entropies, OUTPUT_DIR+"/"+species_id+"/entropies/closeness");
+    resilience = ComputeResilience(modified_shannon_entropies);
     asr.closeness = resilience;
-    resilience = ComputeResilience(degreecentrality_path);
+    modified_shannon_entropies =
+        ComputeModifiedShannonEntropies(degreecentrality_path);
+    WriteEntropies(modified_shannon_entropies, OUTPUT_DIR+"/"+species_id+"/entropies/degreecentrality");
+    resilience = ComputeResilience(modified_shannon_entropies);
     asr.degreecentrality = resilience;
 
     return asr;
@@ -65,8 +86,15 @@ int main() {
     int jobs_num = jobs.size();
     for (int i=0; i<jobs_num; i++) {
         string species_id = jobs[i];
-        cout << "# (" << i << "/" << jobs_num << ") " << species_id << endl;
+        cout << "# (" << i+1 << "/" << jobs_num << ") " << species_id << endl;
 
+        string species_dir = OUTPUT_DIR + "/" + species_id;
+        string entropies_dir = species_dir + "/entropies";
+        string random_dir = entropies_dir + "/random";
+        system(("mkdir -p " + species_dir).c_str());
+        system(("mkdir -p " + entropies_dir).c_str());
+        system(("mkdir -p " + random_dir).c_str());
+        
         AllStrategiesResilience asr = GetAllStrategiesResilience(species_id); 
 
         double random_sum = 0.0;
@@ -77,7 +105,7 @@ int main() {
         }
         random_avg = random_sum / RANDOM_COUNT;
 
-        string output_path = OUTPUT_DIR + "/" + species_id;
+        string output_path = species_dir + "/resilience";
         ofstream out(output_path.c_str());
         out << random_avg << endl
             << asr.betweenness << endl 
